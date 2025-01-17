@@ -10,11 +10,6 @@
     <div class="container mt-5">
         <h1 class="text-center">Hex Auto Converter</h1>
         <div class="card p-4">
-            <!-- Menu nút bấm -->
-            <div class="mb-3 text-center">
-                <button id="encodeButton" class="btn btn-primary mx-2" onclick="setMode('encode')">Encode</button>
-                <button id="decodeButton" class="btn btn-secondary mx-2" onclick="setMode('decode')">Decode</button>
-            </div>
             <div class="mb-3">
                 <label for="inputText" class="form-label">Nhập nội dung:</label>
                 <textarea id="inputText" class="form-control" rows="4" placeholder="Nhập văn bản hoặc chuỗi hex..."></textarea>
@@ -22,6 +17,12 @@
             <div class="mb-3">
                 <label for="outputText" class="form-label">Kết quả:</label>
                 <textarea id="outputText" class="form-control" rows="4" readonly></textarea>
+            </div>
+
+            <!-- Menu nút bấm -->
+            <div class="mb-3 text-center">
+                <button id="encodeButton" class="btn btn-primary mx-2" onclick="convertText('encode')">Encode</button>
+                <button id="decodeButton" class="btn btn-secondary mx-2" onclick="convertText('decode')">Decode</button>
             </div>
 
             <!-- Nút Donate -->
@@ -45,7 +46,7 @@
                     <p>Vui lòng chuyển khoản qua các phương thức sau:</p>
                     <ul>
                         <li>Ngân hàng: Hàng hải MSB</li>
-                        <li>Số tài khoản: 0888408685</li>
+                        <li>Số tài khoản: 0888408686</li>
                         <li>Chủ tài khoản: DINH TRONG KHANH</li>
                     </ul>
                     <p>Hoặc bạn có thể chuyển qua ví điện tử:</p>
