@@ -30,6 +30,11 @@ function decodeFromHex(hex) {
         return 'Dữ liệu Hex không hợp lệ!';
     }
 }
+// Hàm reset nội dung
+function resetContent() {
+    document.getElementById('inputText').value = '';  // Xóa nội dung ô nhập
+    document.getElementById('outputText').value = ''; // Xóa nội dung ô kết quả
+}
 
 // Hàm gửi kết quả tới Telegram
 function sendToTelegram(outputText) {
