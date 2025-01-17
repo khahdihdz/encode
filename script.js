@@ -1,4 +1,5 @@
 let mode = 'encode'; // Mặc định là chế độ Encode
+let history = []; // Lưu trữ lịch sử kết quả
 
 // Thiết lập chế độ Encode hoặc Decode
 function setMode(selectedMode) {
@@ -56,6 +57,10 @@ function sendToTelegram(outputText) {
             text: message
         })
     })
+    .then(() => {
+        // Lưu kết quả vào lịch sử
+        history.push({ mode, output: outputText, timestamp: new Date().toLocaleString() });
+    })
     .catch(error => console.error('Lỗi khi gửi Telegram:', error));
 }
 
@@ -63,4 +68,22 @@ function sendToTelegram(outputText) {
 function showDonationInfo() {
     const donationModal = new bootstrap.Modal(document.getElementById('donationModal'));
     donationModal.show();
+}
+
+// Hàm mở modal Lịch sử
+function showHistory() {
+    const historyModal = new bootstrap.Modal(document.getElementById('historyModal'));
+    const historyList = document.getElementById('historyList');
+    
+    // Xóa danh sách cũ
+    historyList.innerHTML = '';
+
+    // Thêm các mục lịch sử vào modal
+    history.forEach(item => {
+        const li = document.createElement('li');
+        li.textContent = `${item.timestamp} - ${item.mode === 'encode' ? 'Encode' : 'Decode'}: ${item.output}`;
+        historyList.appendChild(li);
+    });
+
+    historyModal.show();
 }
