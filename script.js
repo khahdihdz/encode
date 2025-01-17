@@ -30,6 +30,12 @@ function decodeFromHex(hex) {
         return 'Dữ liệu Hex không hợp lệ!';
     }
 }
+// Hàm sao chép nội dung vào clipboard
+function copyToClipboard() {
+    const outputText = document.getElementById('outputText'); // Lấy ô kết quả
+    outputText.select(); // Chọn nội dung trong ô kết quả
+    document.execCommand('copy'); // Sao chép nội dung vào clipboard
+}
 // Hàm reset nội dung
 function resetContent() {
     document.getElementById('inputText').value = '';  // Xóa nội dung ô nhập
