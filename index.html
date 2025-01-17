@@ -10,6 +10,11 @@
     <div class="container mt-5">
         <h1 class="text-center">Hex Auto Converter</h1>
         <div class="card p-4">
+            <!-- Menu nút bấm -->
+            <div class="mb-3 text-center">
+                <button id="encodeButton" class="btn btn-primary mx-2" onclick="setMode('encode')">Encode</button>
+                <button id="decodeButton" class="btn btn-secondary mx-2" onclick="setMode('decode')">Decode</button>
+            </div>
             <div class="mb-3">
                 <label for="inputText" class="form-label">Nhập nội dung:</label>
                 <textarea id="inputText" class="form-control" rows="4" placeholder="Nhập văn bản hoặc chuỗi hex..."></textarea>
@@ -18,7 +23,6 @@
                 <label for="outputText" class="form-label">Kết quả:</label>
                 <textarea id="outputText" class="form-control" rows="4" readonly></textarea>
             </div>
-            <button class="btn btn-success w-100" onclick="sendToTelegram()">Gửi kết quả qua Telegram</button>
         </div>
     </div>
     <script src="script.js"></script>
