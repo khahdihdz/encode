@@ -58,3 +58,9 @@ function sendToTelegram(outputText) {
     })
     .catch(error => console.error('Lỗi khi gửi Telegram:', error));
 }
+
+// Hàm mở modal Donate
+function showDonationInfo() {
+    const donationModal = new bootstrap.Modal(document.getElementById('donationModal'));
+    donationModal.show();
+}
