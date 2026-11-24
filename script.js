@@ -8,7 +8,7 @@ const encoder = new TextEncoder();
 const decoder = new TextDecoder('utf-8', { fatal: true });
 const bytes = s => encoder.encode(s);
 const fromBytes = b => decoder.decode(b);
-const setStatus = (message, type = '') => { const el=$('status'); el.textContent=tr(message); el.className='status '+type; };
+const setStatus = (message, type = '') => { const el=$('status'); el.dataset.message=message; el.textContent=tr(message); el.className='status '+type; };
 let toastTimer;const showToast=(message,type='success')=>{const old=document.querySelector('.toast-notice');if(old){window.clearTimeout(toastTimer);old.remove();}const toast=document.createElement('div');toast.className='toast-notice '+type;toast.setAttribute('role','status');toast.setAttribute('aria-live','polite');toast.textContent=tr(message);document.body.appendChild(toast);requestAnimationFrame(()=>toast.classList.add('show'));toastTimer=window.setTimeout(()=>{toast.classList.remove('show');window.setTimeout(()=>toast.remove(),250);},3000);};
 const stats = () => {
  const value=input.value; $('inputStats').textContent=value.length.toLocaleString()+' ký tự · '+(value.trim()?value.trim().split(/\s+/u).length:0)+' từ · '+bytes(value).length.toLocaleString()+' byte';
