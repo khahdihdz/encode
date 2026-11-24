@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://khahdihdz.github.io/encode/sitemap.xml
