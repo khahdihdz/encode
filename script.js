@@ -74,7 +74,7 @@ const transform=async (s,op)=>{
  if(['md5','sha1','sha256','sha512'].includes(op)){if(mode==='decode')throw Error('Hash là thuật toán một chiều, không hỗ trợ Decode.');return hash(s,op);}
  if(mode==='encode'){
   switch(op){
-   case'base64':return b64encode(s);case'base64url':return b64encode(s,true);case'url':return encodeURIComponent(s);case'html':return htmlEncode(s);case'unicode':return unicodeEncode(s);case'hex':return hexEncode(s);case'binary':return binaryEncode(s);case'decimal':return decimalEncode(s);case'rot13':return rotate(s,13);case'caesar':return rotate(s,Number($('shift').value)||0);case'morse':return Array.from(s.toUpperCase(),ch=>ch===' '?' / ':morseMap[ch]||'').join(' ').replace(/ +/g,' ').trim();case'reverse':return graphemes(s).reverse().join('');case'json':return JSON.stringify(s).slice(1,-1);default:throw Error('Định dạng chưa được hỗ trợ.');
+   case'base64':return b64encode(s);case'base64url':return b64encode(s,true);case'url':return encodeURIComponent(s);case'html':return htmlEncode(s);case'unicode':return unicodeEncode(s);case'hex':return hexEncode(s);case'binary':return binaryEncode(s);case'decimal':return decimalEncode(s);case'rot13':return rotate(s,13);case'caesar':return rotate(s,Number($('shift').value)||0);case'morse':return Array.from(s.toUpperCase(),ch=>{if(ch===' ')return '/';if(!morseMap[ch])throw Error('Morse không hỗ trợ ký tự: '+ch);return morseMap[ch];}).join(' ');case'reverse':return graphemes(s).reverse().join('');case'json':return JSON.stringify(s).slice(1,-1);default:throw Error('Định dạng chưa được hỗ trợ.');
   }
  }
  switch(op){
