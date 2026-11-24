@@ -8,7 +8,7 @@ const decoder = new TextDecoder('utf-8', { fatal: true });
 const bytes = s => encoder.encode(s);
 const fromBytes = b => decoder.decode(b);
 const setStatus = (message, type = '') => { const el=$('status'); el.textContent=message; el.className='status '+type; };
-const showToast=(message,type='success')=>{const old=document.querySelector('.toast-notice');if(old)old.remove();const toast=document.createElement('div');toast.className='toast-notice '+type;toast.setAttribute('role','status');toast.setAttribute('aria-live','polite');toast.textContent=message;document.body.appendChild(toast);requestAnimationFrame(()=>toast.classList.add('show'));window.setTimeout(()=>{toast.classList.remove('show');window.setTimeout(()=>toast.remove(),250);},3600);};
+let toastTimer;const showToast=(message,type='success')=>{const old=document.querySelector('.toast-notice');if(old){window.clearTimeout(toastTimer);old.remove();}const toast=document.createElement('div');toast.className='toast-notice '+type;toast.setAttribute('role','status');toast.setAttribute('aria-live','polite');toast.textContent=message;document.body.appendChild(toast);requestAnimationFrame(()=>toast.classList.add('show'));toastTimer=window.setTimeout(()=>{toast.classList.remove('show');window.setTimeout(()=>toast.remove(),250);},3000);};
 const stats = () => {
  const value=input.value; $('inputStats').textContent=value.length.toLocaleString()+' ký tự · '+(value.trim()?value.trim().split(/\s+/u).length:0)+' từ · '+bytes(value).length.toLocaleString()+' byte';
  $('outputStats').textContent=output.value.length.toLocaleString()+' ký tự';
@@ -94,26 +94,26 @@ const saveTelegramHistory=async({inputText,outputText,operation,formatName})=>{
  }catch{return false;}
 };
 const convert=async()=>{
- if(!input.value){output.value='';stats();setStatus('Hãy nhập văn bản cần xử lý.');return;}
- const op=format.value;if(mode==='decode'&&['md5','sha1','sha256','sha512'].includes(op)){setStatus('Hash là một chiều, không thể giải mã.','error');return;}
+ if(!input.value){output.value='';stats();setStatus('Hãy nhập văn bản cần xử lý.');showToast('Vui lòng nhập văn bản trước khi xử lý.','warning');return;}
+ const op=format.value;if(mode==='decode'&&['md5','sha1','sha256','sha512'].includes(op)){setStatus('Hash là một chiều, không thể giải mã.','error');showToast('Hash là một chiều, không thể Decode.','warning');return;}
  const btn=$('convertBtn');btn.disabled=true;setStatus('Đang xử lý trong trình duyệt…');
  try{const value=preprocess(input.value);let result;
   if($('batchMode').value==='line'){
    const parts=value.split(/(\r\n|\r|\n)/); result='';
    for(const part of parts){if(part==='\r\n'||part==='\r'||part==='\n')result+=part;else if(part!=='')result+=await transform(part,op);}
   }else result=await transform(value,op);output.value=result;stats();$('resultState').textContent='HOÀN TẤT';setStatus('Hoàn tất. Đang lưu lịch sử lên Telegram…','success');const saved=await saveTelegramHistory({inputText:input.value,outputText:result,operation:mode.toUpperCase(),formatName:op});const doneMessage=saved?'Hoàn tất. Lịch sử đã được gửi đến Telegram.':'Hoàn tất. Không thể gửi lịch sử Telegram (kiểm tra cấu hình/kết nối).';setStatus(doneMessage,saved?'success':'error');showToast(saved?'Hoàn tất! Lịch sử đã được gửi đến Telegram.':'Đã xử lý xong, nhưng chưa gửi được lịch sử Telegram.',saved?'success':'warning');}
- catch(e){output.value='';stats();$('resultState').textContent='ERROR';setStatus(e&&e.message?e.message:'Không thể xử lý dữ liệu. Kiểm tra định dạng đầu vào.','error');}
+ catch(e){output.value='';stats();$('resultState').textContent='ERROR';const errorMessage=e&&e.message?e.message:'Không thể xử lý dữ liệu. Kiểm tra định dạng đầu vào.';setStatus(errorMessage,'error');showToast(errorMessage,'error');}
  finally{btn.disabled=false;}
 };
 const setMode=m=>{mode=m;$('encodeMode').classList.toggle('active',m==='encode');$('decodeMode').classList.toggle('active',m==='decode');$('convertLabel').textContent=m==='encode'?'Encode':'Decode';};
 const updateParams=()=>{const v=format.value;$('caesarParam').hidden=v!=='caesar';$('separatorParam').hidden=!['hex','binary','decimal'].includes(v);$('decodeMode').disabled=['md5','sha1','sha256','sha512'].includes(v);if($('decodeMode').disabled&&mode==='decode')setMode('encode');};
 $('encodeMode').addEventListener('click',()=>setMode('encode'));$('decodeMode').addEventListener('click',()=>setMode('decode'));$('convertBtn').addEventListener('click',convert);format.addEventListener('change',updateParams);
 input.addEventListener('input',stats);output.addEventListener('input',stats);
-$('clearBtn').addEventListener('click',()=>{input.value='';output.value='';stats();setStatus('Đã xóa nội dung khỏi giao diện.');input.focus();});
-$('pasteBtn').addEventListener('click',async()=>{try{if(!navigator.clipboard?.readText)throw Error('Trình duyệt không hỗ trợ đọc Clipboard.');input.value=await navigator.clipboard.readText();stats();setStatus('Đã dán nội dung.');}catch(e){setStatus(e.message||'Không thể đọc Clipboard. Hãy dán thủ công.','error');}});
-$('copyBtn').addEventListener('click',async()=>{if(!output.value){setStatus('Chưa có kết quả để sao chép.','error');return;}try{await navigator.clipboard.writeText(output.value);setStatus('Đã sao chép kết quả vào Clipboard.','success');}catch{output.focus();output.select();setStatus('Hãy sao chép kết quả bằng thao tác Copy của trình duyệt.','error');}});
-$('downloadBtn').addEventListener('click',()=>{if(!output.value){setStatus('Chưa có kết quả để tải.','error');return;}const blob=new Blob([output.value],{type:'text/plain;charset=utf-8'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='encode-result.txt';a.click();URL.revokeObjectURL(url);setStatus('Đã tạo tệp tải xuống theo yêu cầu.','success');});
-$('swapBtn').addEventListener('click',()=>{const v=input.value;input.value=output.value;output.value=v;setMode(mode==='encode'?'decode':'encode');stats();setStatus('Đã đổi Input / Output.');});
+$('clearBtn').addEventListener('click',()=>{input.value='';output.value='';stats();setStatus('Đã xóa nội dung khỏi giao diện.');showToast('Đã xóa nội dung Input và Output.');input.focus();});
+$('pasteBtn').addEventListener('click',async()=>{try{if(!navigator.clipboard?.readText)throw Error('Trình duyệt không hỗ trợ đọc Clipboard.');input.value=await navigator.clipboard.readText();stats();setStatus('Đã dán nội dung.');showToast('Đã dán nội dung từ Clipboard.');}catch(e){const message=e.message||'Không thể đọc Clipboard. Hãy dán thủ công.';setStatus(message,'error');showToast(message,'warning');}});
+$('copyBtn').addEventListener('click',async()=>{if(!output.value){setStatus('Chưa có kết quả để sao chép.','error');showToast('Chưa có kết quả để sao chép.','warning');return;}try{await navigator.clipboard.writeText(output.value);setStatus('Đã sao chép kết quả vào Clipboard.','success');showToast('Đã sao chép kết quả vào Clipboard.');}catch{output.focus();output.select();setStatus('Hãy sao chép kết quả bằng thao tác Copy của trình duyệt.','error');showToast('Trình duyệt đã chọn văn bản. Hãy sao chép thủ công.','warning');}});
+$('downloadBtn').addEventListener('click',()=>{if(!output.value){setStatus('Chưa có kết quả để tải.','error');showToast('Chưa có kết quả để tải xuống.','warning');return;}const blob=new Blob([output.value],{type:'text/plain;charset=utf-8'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='encode-result.txt';a.click();URL.revokeObjectURL(url);setStatus('Đã tạo tệp tải xuống theo yêu cầu.','success');showToast('Đã tạo tệp encode-result.txt.');});
+$('swapBtn').addEventListener('click',()=>{const v=input.value;input.value=output.value;output.value=v;setMode(mode==='encode'?'decode':'encode');stats();setStatus('Đã đổi Input / Output.');showToast('Đã hoán đổi Input / Output và chế độ.');});
 $('themeBtn').addEventListener('click',()=>{document.body.classList.toggle('light');$('themeBtn').textContent=document.body.classList.contains('light')?'☾':'☼';});
 $('year').textContent=new Date().getFullYear();updateParams();stats();
 })();
