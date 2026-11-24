@@ -1,18 +1,20 @@
 (() => {
 'use strict';
 const $ = id => document.getElementById(id);
+const tr = message => window.siteI18n ? window.siteI18n.translate(message) : message;
 const input = $('inputText'), output = $('outputText'), format = $('format');
 let mode = 'encode';
 const encoder = new TextEncoder();
 const decoder = new TextDecoder('utf-8', { fatal: true });
 const bytes = s => encoder.encode(s);
 const fromBytes = b => decoder.decode(b);
-const setStatus = (message, type = '') => { const el=$('status'); el.textContent=message; el.className='status '+type; };
-let toastTimer;const showToast=(message,type='success')=>{const old=document.querySelector('.toast-notice');if(old){window.clearTimeout(toastTimer);old.remove();}const toast=document.createElement('div');toast.className='toast-notice '+type;toast.setAttribute('role','status');toast.setAttribute('aria-live','polite');toast.textContent=message;document.body.appendChild(toast);requestAnimationFrame(()=>toast.classList.add('show'));toastTimer=window.setTimeout(()=>{toast.classList.remove('show');window.setTimeout(()=>toast.remove(),250);},3000);};
+const setStatus = (message, type = '') => { const el=$('status'); el.textContent=tr(message); el.className='status '+type; };
+let toastTimer;const showToast=(message,type='success')=>{const old=document.querySelector('.toast-notice');if(old){window.clearTimeout(toastTimer);old.remove();}const toast=document.createElement('div');toast.className='toast-notice '+type;toast.setAttribute('role','status');toast.setAttribute('aria-live','polite');toast.textContent=tr(message);document.body.appendChild(toast);requestAnimationFrame(()=>toast.classList.add('show'));toastTimer=window.setTimeout(()=>{toast.classList.remove('show');window.setTimeout(()=>toast.remove(),250);},3000);};
 const stats = () => {
  const value=input.value; $('inputStats').textContent=value.length.toLocaleString()+' ký tự · '+(value.trim()?value.trim().split(/\s+/u).length:0)+' từ · '+bytes(value).length.toLocaleString()+' byte';
- $('outputStats').textContent=output.value.length.toLocaleString()+' ký tự';
+ $('outputStats').textContent=output.value.length.toLocaleString()+(window.siteI18n?.lang==='en'?' characters':' ký tự');
 };
+window.siteRefreshStats = stats;
 const preprocess = value => {
  let s=value;
  if($('trimSpace').checked) s=s.trim();
@@ -101,7 +103,7 @@ const convert=async()=>{
   if($('batchMode').value==='line'){
    const parts=value.split(/(\r\n|\r|\n)/); result='';
    for(const part of parts){if(part==='\r\n'||part==='\r'||part==='\n')result+=part;else if(part!=='')result+=await transform(part,op);}
-  }else result=await transform(value,op);output.value=result;stats();$('resultState').textContent='HOÀN TẤT';setStatus('Hoàn tất. Đang lưu lịch sử lên Telegram…','success');const saved=await saveTelegramHistory({inputText:input.value,outputText:result,operation:mode.toUpperCase(),formatName:op});const doneMessage=saved?'Hoàn tất. Lịch sử đã được gửi đến Telegram.':'Hoàn tất. Không thể gửi lịch sử Telegram (kiểm tra cấu hình/kết nối).';setStatus(doneMessage,saved?'success':'error');showToast(saved?'Hoàn tất! Lịch sử đã được gửi đến Telegram.':'Đã xử lý xong, nhưng chưa gửi được lịch sử Telegram.',saved?'success':'warning');}
+  }else result=await transform(value,op);output.value=result;stats();$('resultState').textContent=window.siteI18n?.lang==='en'?'COMPLETE':'HOÀN TẤT';setStatus('Hoàn tất. Đang lưu lịch sử lên Telegram…','success');const saved=await saveTelegramHistory({inputText:input.value,outputText:result,operation:mode.toUpperCase(),formatName:op});const doneMessage=saved?'Hoàn tất. Lịch sử đã được gửi đến Telegram.':'Hoàn tất. Không thể gửi lịch sử Telegram (kiểm tra cấu hình/kết nối).';setStatus(doneMessage,saved?'success':'error');showToast(saved?'Hoàn tất! Lịch sử đã được gửi đến Telegram.':'Đã xử lý xong, nhưng chưa gửi được lịch sử Telegram.',saved?'success':'warning');}
  catch(e){output.value='';stats();$('resultState').textContent='ERROR';const errorMessage=e&&e.message?e.message:'Không thể xử lý dữ liệu. Kiểm tra định dạng đầu vào.';setStatus(errorMessage,'error');showToast(errorMessage,'error');}
  finally{btn.disabled=false;}
 };
