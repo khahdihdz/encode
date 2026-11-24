@@ -85,7 +85,11 @@ const convert=async()=>{
  if(!input.value){output.value='';stats();setStatus('Hãy nhập văn bản cần xử lý.');return;}
  const op=format.value;if(mode==='decode'&&['md5','sha1','sha256','sha512'].includes(op)){setStatus('Hash là một chiều, không thể giải mã.','error');return;}
  const btn=$('convertBtn');btn.disabled=true;setStatus('Đang xử lý trong trình duyệt…');
- try{const value=preprocess(input.value);const result=await transform(value,op);output.value=result;stats();$('resultState').textContent='HOÀN TẤT';setStatus('Hoàn tất. Nội dung chỉ được xử lý trong bộ nhớ trang.','success');}
+ try{const value=preprocess(input.value);let result;
+  if($('batchMode').value==='line'){
+   const parts=value.split(/(\r\n|\r|\n)/); result='';
+   for(const part of parts){if(part==='\r\n'||part==='\r'||part==='\n')result+=part;else if(part!=='')result+=await transform(part,op);}
+  }else result=await transform(value,op);output.value=result;stats();$('resultState').textContent='HOÀN TẤT';setStatus('Hoàn tất. Nội dung chỉ được xử lý trong bộ nhớ trang.','success');}
  catch(e){output.value='';stats();$('resultState').textContent='ERROR';setStatus(e&&e.message?e.message:'Không thể xử lý dữ liệu. Kiểm tra định dạng đầu vào.','error');}
  finally{btn.disabled=false;}
 };
