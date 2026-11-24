@@ -11,7 +11,7 @@ const fromBytes = b => decoder.decode(b);
 const setStatus = (message, type = '') => { const el=$('status'); el.dataset.message=message; el.textContent=tr(message); el.className='status '+type; };
 let toastTimer;const showToast=(message,type='success')=>{const old=document.querySelector('.toast-notice');if(old){window.clearTimeout(toastTimer);old.remove();}const toast=document.createElement('div');toast.className='toast-notice '+type;toast.setAttribute('role','status');toast.setAttribute('aria-live','polite');toast.textContent=tr(message);document.body.appendChild(toast);requestAnimationFrame(()=>toast.classList.add('show'));toastTimer=window.setTimeout(()=>{toast.classList.remove('show');window.setTimeout(()=>toast.remove(),250);},3000);};
 const stats = () => {
- const value=input.value; $('inputStats').textContent=value.length.toLocaleString()+' ký tự · '+(value.trim()?value.trim().split(/\s+/u).length:0)+' từ · '+bytes(value).length.toLocaleString()+' byte';
+ const value=input.value; $('inputStats').textContent=value.length.toLocaleString()+(window.siteI18n?.lang==='en'?' characters · ':' ký tự · ')+(value.trim()?value.trim().split(/\\s+/u).length:0)+(window.siteI18n?.lang==='en'?' words · ':' từ · ')+bytes(value).length.toLocaleString()+(window.siteI18n?.lang==='en'?' bytes':' byte');
  $('outputStats').textContent=output.value.length.toLocaleString()+(window.siteI18n?.lang==='en'?' characters':' ký tự');
 };
 window.siteRefreshStats = stats;
