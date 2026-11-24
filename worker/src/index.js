@@ -17,11 +17,6 @@ function json(data, status, origin) {
     headers: { "Content-Type": "application/json; charset=utf-8", ...cors(origin) }
   });
 }
-function escapeHtml(value) {
-  return String(value).replace(/[&<>"']/g, ch => ({
-    "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
-  })[ch]);
-}
 function clip(value, max) {
   const text = String(value ?? "");
   return text.length > max ? text.slice(0, max) + "\n… [đã rút gọn]" : text;
@@ -58,19 +53,20 @@ export default {
     if (!operation || !allowedFormats.has(data.format) || typeof data.input !== "string" || typeof data.output !== "string") {
       return json({ error: "Thiếu hoặc sai trường dữ liệu." }, 400, origin);
     }
-    const input = clip(data.input, 1400);
-    const output = clip(data.output, 1400);
+    const input = clip(data.input, 1500);
+    const output = clip(data.output, 1500);
     const time = new Date(data.timestamp || now).toISOString();
     const message = [
-      "🧾 <b>ENCODE &amp; DECODE PRO</b>",
-      "<b>Thao tác:</b> " + operation,
-      "<b>Định dạng:</b> " + escapeHtml(data.format),
-      "<b>Thời gian:</b> " + escapeHtml(time),
+      "🧾 ENCODE & DECODE PRO",
+      "Thao tác: " + operation,
+      "Định dạng: " + data.format,
+      "Thời gian: " + time,
       "",
-      "<b>INPUT</b>",
-      "<pre>" + escapeHtml(input) + "</pre>",
-      "<b>OUTPUT</b>",
-      "<pre>" + escapeHtml(output) + "</pre>"
+      "INPUT:",
+      input,
+      "",
+      "OUTPUT:",
+      output
     ].join("\n");
     const telegram = await fetch("https://api.telegram.org/bot" + env.TELEGRAM_BOT_TOKEN + "/sendMessage", {
       method: "POST",
@@ -78,7 +74,6 @@ export default {
       body: JSON.stringify({
         chat_id: env.TELEGRAM_CHAT_ID,
         text: message,
-        parse_mode: "HTML",
         disable_web_page_preview: true
       })
     });
