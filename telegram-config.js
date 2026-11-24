@@ -1,0 +1,1 @@
+window.ENCODE_TELEGRAM_ENDPOINT = "";
