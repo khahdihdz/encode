@@ -18,7 +18,7 @@ Webapp mã hóa và giải mã văn bản đa định dạng, chạy hoàn toàn
 - MD5, SHA-1, SHA-256 và SHA-512 (hash một chiều)
 - Hỗ trợ tiếng Việt, Emoji, khoảng trắng, Tab và xuống dòng
 - Tùy chọn xử lý khoảng trắng do người dùng kiểm soát
-- Sao chép kết quả và tải TXT theo thao tác chủ động
+- Xử lý toàn văn bản hoặc từng dòng (Line by Line)\n- Sao chép kết quả và tải TXT theo thao tác chủ động
 - Giao diện sáng/tối, responsive cho điện thoại và desktop
 
 ## Quyền riêng tư
@@ -68,7 +68,7 @@ Sau đó mở http://localhost:8080.
 - `index.html` — landing page và giao diện ứng dụng.
 - `styles.css` — giao diện responsive, không phụ thuộc CDN.
 - `script.js` — logic Encode / Decode chạy phía client.
-- `README.md` — tài liệu dự án.
+- `favicon.svg` — biểu tượng trang web.\n- `README.md` — tài liệu dự án.
 
 ## License
 
