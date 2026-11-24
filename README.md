@@ -22,14 +22,23 @@ Webapp mã hóa và giải mã văn bản đa định dạng, chạy hoàn toàn
 - Sao chép kết quả và tải TXT theo thao tác chủ động
 - Giao diện sáng/tối, responsive cho điện thoại và desktop
 
+## Lưu lịch sử Telegram
+
+- Sau mỗi lần Encode/Decode thành công, ứng dụng gửi Input, Output, chế độ, định dạng và thời điểm đến Telegram.
+- Trình duyệt gọi Cloudflare Worker; Telegram Bot Token và Chat ID chỉ được lưu dưới dạng GitHub Actions Secrets rồi đồng bộ thành Worker Secrets.
+- Không đặt Bot Token trong mã nguồn hoặc JavaScript công khai.
+- Cần cấu hình các GitHub Secrets: `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`, `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID`.
+- Cloudflare API Token cần quyền Workers Scripts: Edit cho đúng tài khoản.
+- Workflow `.github/workflows/deploy-telegram.yml` triển khai Worker và tự sinh `telegram-config.js` với URL Worker công khai.
+
 ## Quyền riêng tư
 
-- Không Backend, Database, tài khoản hoặc API xử lý bên ngoài.
+- Cloudflare Worker là backend chuyển tiếp riêng cho tính năng lưu lịch sử Telegram.
 - Không dùng LocalStorage, SessionStorage, IndexedDB hay Cookie.
-- Không lưu lịch sử, Input, Output hoặc cấu hình chứa nội dung.
+- Không lưu lịch sử trong trình duyệt; lịch sử được gửi đến Telegram theo yêu cầu tự động của tính năng.
 - Không Analytics, Tracking, Telemetry hoặc ghi nội dung vào Console.
-- Không có request mạng trong luồng xử lý Encode / Decode.
-- Nội dung chỉ tồn tại trong bộ nhớ của trang hiện tại. Tải lại hoặc đóng trang sẽ kết thúc phiên.
+- Có request mạng sau mỗi lần Encode / Decode thành công để gửi lịch sử Telegram.
+- Nội dung được gửi tới Telegram có thể được lưu trong cuộc trò chuyện Telegram theo chính sách của Telegram và quyền truy cập chat.
 - Chỉ tạo tệp tải xuống khi người dùng bấm nút Download.
 
 Trang web không tải thư viện, font hoặc tài nguyên bên thứ ba. Sau khi trang được tải từ GitHub Pages, các phép chuyển đổi không cần kết nối API.
@@ -68,7 +77,10 @@ Sau đó mở http://localhost:8080.
 
 - `index.html` — landing page và giao diện ứng dụng.
 - `styles.css` — giao diện responsive, không phụ thuộc CDN.
-- `script.js` — logic Encode / Decode chạy phía client.
+- `script.js` — logic Encode / Decode và gửi lịch sử.
+- `telegram-config.js` — URL Worker, được workflow tự tạo.
+- `worker/src/index.js` — Cloudflare Worker gửi lịch sử đến Telegram.
+- `.github/workflows/deploy-telegram.yml` — tự động triển khai Worker.
 - `favicon.svg` — biểu tượng trang web.
 - `README.md` — tài liệu dự án.
 
