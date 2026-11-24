@@ -64,7 +64,7 @@ const dynamic = {
 'Đã hoán đổi Input / Output và chế độ.':'Input / Output and mode swapped.',
 'Trình duyệt không hỗ trợ đọc Clipboard.':'This browser does not support clipboard reading.'
 };
-const enToVi = Object.fromEntries(Object.entries(viToEn).map(([vi,en])=>[en,vi]));
+const enToVi = Object.fromEntries([...Object.entries(viToEn), ...Object.entries(dynamic)].map(([vi,en])=>[en,vi]));
 let lang = new URLSearchParams(location.search).get('lang') === 'en' ? 'en' : 'vi';
 const translate = value => {
  if(lang !== 'en') return value;
@@ -99,11 +99,11 @@ const apply = () => {
  const btn=document.getElementById('languageBtn');
  if(btn){btn.textContent=lang==='en'?'VI':'EN';btn.setAttribute('aria-label',lang==='en'?'Switch to Vietnamese':'Switch to English');btn.title=lang==='en'?'Switch to Vietnamese':'Switch to English';}
  const status=document.getElementById('status');
- if(status && status.dataset.i18n) status.textContent=translate(status.dataset.i18n);
+ if(status && status.dataset.message) status.textContent=translate(status.dataset.message);
  const stats=document.getElementById('inputStats');
  if(stats && window.siteRefreshStats) window.siteRefreshStats();
  const result=document.getElementById('resultState');
- if(result && result.textContent==='HOÀN TẤT') result.textContent=lang==='en'?'COMPLETE':'HOÀN TẤT';
+ if(result && ['HOÀN TẤT','COMPLETE'].includes(result.textContent)) result.textContent=lang==='en'?'COMPLETE':'HOÀN TẤT';
  const modeLabel=document.getElementById('convertLabel');
  if(modeLabel) modeLabel.textContent=document.getElementById('encodeMode').classList.contains('active')?'Encode':'Decode';
  const url=new URL(location.href);
