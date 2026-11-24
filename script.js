@@ -46,19 +46,19 @@ const binaryDecode=s=>{
 };
 const decimalEncode=s=>Array.from(s,ch=>ch.codePointAt(0).toString(10)).join($('separator').value||' ');
 const decimalDecode=s=>{
- const tokens=s.trim().split(/[\s,;|]+/).filter(Boolean); if(!tokens.length) return '';
+ const tokens=s.trim().split(/[\s,;|_-]+/).filter(Boolean); if(!tokens.length) return '';
  return tokens.map(t=>{if(!/^\d+$/.test(t)) throw Error('Decimal Unicode không hợp lệ.'); const n=Number(t); if(!Number.isInteger(n)||n<0||n>0x10ffff||(n>=0xd800&&n<=0xdfff)) throw Error('Mã Unicode nằm ngoài phạm vi hợp lệ.'); return String.fromCodePoint(n);}).join('');
 };
 const unicodeEncode=s=>Array.from(s,ch=>{const cp=ch.codePointAt(0);return cp<=0xffff?'\\u'+cp.toString(16).padStart(4,'0'):'\\u{'+cp.toString(16)+'}';}).join('');
 const unicodeDecode=s=>s.replace(/\\u\{([\da-f]{1,6})\}|\\u([\da-f]{4})/gi,(_,a,b)=>{const n=parseInt(a||b,16);if(n>0x10ffff||(n>=0xd800&&n<=0xdfff))throw Error('Unicode escape không hợp lệ.');return String.fromCodePoint(n);});
 const htmlEncode=s=>s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
-const htmlDecode=s=>{const d=new DOMParser().parseFromString(s,'text/html');return d.documentElement.textContent;};
+const htmlDecode=s=>s.replace(/&(#x[\da-f]+|#\d+|amp|lt|gt|quot|apos);/gi,(whole,entity)=>{if(entity[0]==='#'){const n=entity[1].toLowerCase()==='x'?parseInt(entity.slice(2),16):parseInt(entity.slice(1),10);return Number.isFinite(n)&&n>=0&&n<=0x10ffff&&!(n>=0xd800&&n<=0xdfff)?String.fromCodePoint(n):whole;}return ({amp:'&',lt:'<',gt:'>',quot:'"',apos:"'"})[entity.toLowerCase()]||whole;});
 const rotate=(s,shift)=>Array.from(s,ch=>{const c=ch.codePointAt(0);if(c>=65&&c<=90)return String.fromCharCode((c-65+shift+2600)%26+65);if(c>=97&&c<=122)return String.fromCharCode((c-97+shift+2600)%26+97);return ch;}).join('');
 const morseMap={A:'.-',B:'-...',C:'-.-.',D:'-..',E:'.',F:'..-.',G:'--.',H:'....',I:'..',J:'.---',K:'-.-',L:'.-..',M:'--',N:'-.',O:'---',P:'.--.',Q:'--.-',R:'.-.',S:'...',T:'-',U:'..-',V:'...-',W:'.--',X:'-..-',Y:'-.--',Z:'--..',0:'-----',1:'.----',2:'..---',3:'...--',4:'....-',5:'.....',6:'-....',7:'--...',8:'---..',9:'----.', '.':'.-.-.-',',':'--..--','?':'..--..',"'":'.----.','!':'-.-.--','/':'-..-.','(':'-.--.',')':'-.--.-','&':'.-...',':':'---...',';':'-.-.-.','=':'-...-','+':'.-.-.','-':'-....-','_':'..--.-','"':'.-..-.','$':'...-..-','@':'.--.-.'};
 const morseReverse=Object.fromEntries(Object.entries(morseMap).map(([k,v])=>[v,k]));
 const graphemes=s=>typeof Intl!=='undefined'&&Intl.Segmenter?[...new Intl.Segmenter(undefined,{granularity:'grapheme'}).segment(s)].map(x=>x.segment):Array.from(s);
 const md5=s=>{
- const data=Array.from(bytes(s)); const bitLen=data.length*8; data.push(128); while(data.length%64!==56)data.push(0);
+ const data=Array.from(bytes(s)), bitLen=data.length*8; data.push(128); while(data.length%64!==56)data.push(0);
  const lo=bitLen>>>0,hi=Math.floor(bitLen/4294967296); for(let i=0;i<4;i++)data.push((lo>>>(8*i))&255);for(let i=0;i<4;i++)data.push((hi>>>(8*i))&255);
  const K=Array.from({length:64},(_,i)=>Math.floor(Math.abs(Math.sin(i+1))*4294967296)>>>0), S=[7,12,17,22,5,9,14,20,4,11,16,23,6,10,15,21];
  let a0=0x67452301,b0=0xefcdab89,c0=0x98badcfe,d0=0x10325476;
@@ -69,9 +69,8 @@ const md5=s=>{
  }
  return [a0,b0,c0,d0].map(n=>[0,8,16,24].map(k=>((n>>>k)&255).toString(16).padStart(2,'0')).join('')).join('');
 };
-const hash=async (s,alg)=>{if(alg==='md5')return md5(s);if(!crypto.subtle)throw Error('Web Crypto không khả dụng trong ngữ cảnh này. Hãy dùng HTTPS hoặc localhost.');const name={sha1:'SHA-1',sha256:'SHA-256',sha512:'SHA-512'}[alg];const digest=await crypto.subtle.digest(name,bytes(s));return Array.from(new Uint8Array(digest),b=>b.toString(16).padStart(2,'0')).join('');};
+const hash=async (s,alg)=>{if(alg==='md5')return md5(s);if(!crypto.subtle)throw Error('Web Crypto không khả dụng. Hãy mở trang bằng HTTPS hoặc localhost.');const name={sha1:'SHA-1',sha256:'SHA-256',sha512:'SHA-512'}[alg];const digest=await crypto.subtle.digest(name,bytes(s));return Array.from(new Uint8Array(digest),b=>b.toString(16).padStart(2,'0')).join('');};
 const transform=async (s,op)=>{
- const sep=$('separator').value;
  if(['md5','sha1','sha256','sha512'].includes(op)){if(mode==='decode')throw Error('Hash là thuật toán một chiều, không hỗ trợ Decode.');return hash(s,op);}
  if(mode==='encode'){
   switch(op){
