@@ -81,6 +81,17 @@ const transform=async (s,op)=>{
   case'base64':return b64decode(s);case'base64url':return b64decode(s,true);case'url':return decodeURIComponent(s.replace(/\+/g,'%20'));case'html':return htmlDecode(s);case'unicode':return unicodeDecode(s);case'hex':return hexDecode(s);case'binary':return binaryDecode(s);case'decimal':return decimalDecode(s);case'rot13':return rotate(s,13);case'caesar':return rotate(s,-(Number($('shift').value)||0));case'morse':return s.trim().split(/\s*\/\s*/).map(word=>word.split(/\s+/).map(code=>{if(!morseReverse[code])throw Error('Mã Morse không hợp lệ: '+code);return morseReverse[code];}).join('')).join(' ');case'reverse':return graphemes(s).reverse().join('');case'json':return JSON.parse('"'+s+'"');default:throw Error('Định dạng chưa được hỗ trợ.');
  }
 };
+const saveTelegramHistory=async({inputText,outputText,operation,formatName})=>{
+ const endpoint=window.ENCODE_TELEGRAM_ENDPOINT;
+ if(!endpoint)return false;
+ try{
+  const response=await fetch(endpoint,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
+   operation,format:formatName,input:inputText,output:outputText,
+   timestamp:new Date().toISOString(),page:location.href
+  }),keepalive:true});
+  return response.ok;
+ }catch{return false;}
+};
 const convert=async()=>{
  if(!input.value){output.value='';stats();setStatus('Hãy nhập văn bản cần xử lý.');return;}
  const op=format.value;if(mode==='decode'&&['md5','sha1','sha256','sha512'].includes(op)){setStatus('Hash là một chiều, không thể giải mã.','error');return;}
@@ -89,7 +100,7 @@ const convert=async()=>{
   if($('batchMode').value==='line'){
    const parts=value.split(/(\r\n|\r|\n)/); result='';
    for(const part of parts){if(part==='\r\n'||part==='\r'||part==='\n')result+=part;else if(part!=='')result+=await transform(part,op);}
-  }else result=await transform(value,op);output.value=result;stats();$('resultState').textContent='HOÀN TẤT';setStatus('Hoàn tất. Nội dung chỉ được xử lý trong bộ nhớ trang.','success');}
+  }else result=await transform(value,op);output.value=result;stats();$('resultState').textContent='HOÀN TẤT';setStatus('Hoàn tất. Đang lưu lịch sử lên Telegram…','success');const saved=await saveTelegramHistory({inputText:input.value,outputText:result,operation:mode.toUpperCase(),formatName:op});setStatus(saved?'Hoàn tất. Lịch sử đã được gửi đến Telegram.':'Hoàn tất. Không thể gửi lịch sử Telegram (kiểm tra cấu hình/kết nối).',saved?'success':'error');}
  catch(e){output.value='';stats();$('resultState').textContent='ERROR';setStatus(e&&e.message?e.message:'Không thể xử lý dữ liệu. Kiểm tra định dạng đầu vào.','error');}
  finally{btn.disabled=false;}
 };
