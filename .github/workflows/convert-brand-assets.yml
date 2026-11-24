@@ -1,0 +1,54 @@
+name: Convert brand SVG assets to PNG
+
+on:
+  push:
+    paths:
+      - ".github/workflows/convert-brand-assets.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  convert:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Convert SVG assets to PNG
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install cairosvg
+          test -f logo.svg
+          test -f social-preview.svg
+          python - <<'PY'
+          import cairosvg
+          cairosvg.svg2png(url="logo.svg", write_to="logo.png", output_width=512, output_height=512)
+          cairosvg.svg2png(url="social-preview.svg", write_to="social-preview.png", output_width=1200, output_height=630)
+          PY
+
+      - name: Update website image references
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p = Path("index.html")
+          s = p.read_text(encoding="utf-8")
+          s = s.replace("logo.svg", "logo.png")
+          s = s.replace("social-preview.svg", "social-preview.png")
+          s = s.replace('content="image/svg+xml"', 'content="image/png"')
+          s = s.replace('name="twitter:card" content="summary"', 'name="twitter:card" content="summary_large_image"')
+          p.write_text(s, encoding="utf-8")
+          PY
+
+      - name: Commit PNG assets and remove SVG sources
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git rm logo.svg social-preview.svg
+          git add logo.png social-preview.png index.html
+          git commit -m "Convert brand assets from SVG to PNG"
+          git push origin HEAD:main
