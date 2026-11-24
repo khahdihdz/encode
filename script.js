@@ -8,6 +8,7 @@ const decoder = new TextDecoder('utf-8', { fatal: true });
 const bytes = s => encoder.encode(s);
 const fromBytes = b => decoder.decode(b);
 const setStatus = (message, type = '') => { const el=$('status'); el.textContent=message; el.className='status '+type; };
+const showToast=(message,type='success')=>{const old=document.querySelector('.toast-notice');if(old)old.remove();const toast=document.createElement('div');toast.className='toast-notice '+type;toast.setAttribute('role','status');toast.setAttribute('aria-live','polite');toast.textContent=message;document.body.appendChild(toast);requestAnimationFrame(()=>toast.classList.add('show'));window.setTimeout(()=>{toast.classList.remove('show');window.setTimeout(()=>toast.remove(),250);},3600);};
 const stats = () => {
  const value=input.value; $('inputStats').textContent=value.length.toLocaleString()+' ký tự · '+(value.trim()?value.trim().split(/\s+/u).length:0)+' từ · '+bytes(value).length.toLocaleString()+' byte';
  $('outputStats').textContent=output.value.length.toLocaleString()+' ký tự';
@@ -100,7 +101,7 @@ const convert=async()=>{
   if($('batchMode').value==='line'){
    const parts=value.split(/(\r\n|\r|\n)/); result='';
    for(const part of parts){if(part==='\r\n'||part==='\r'||part==='\n')result+=part;else if(part!=='')result+=await transform(part,op);}
-  }else result=await transform(value,op);output.value=result;stats();$('resultState').textContent='HOÀN TẤT';setStatus('Hoàn tất. Đang lưu lịch sử lên Telegram…','success');const saved=await saveTelegramHistory({inputText:input.value,outputText:result,operation:mode.toUpperCase(),formatName:op});setStatus(saved?'Hoàn tất. Lịch sử đã được gửi đến Telegram.':'Hoàn tất. Không thể gửi lịch sử Telegram (kiểm tra cấu hình/kết nối).',saved?'success':'error');}
+  }else result=await transform(value,op);output.value=result;stats();$('resultState').textContent='HOÀN TẤT';setStatus('Hoàn tất. Đang lưu lịch sử lên Telegram…','success');const saved=await saveTelegramHistory({inputText:input.value,outputText:result,operation:mode.toUpperCase(),formatName:op});const doneMessage=saved?'Hoàn tất. Lịch sử đã được gửi đến Telegram.':'Hoàn tất. Không thể gửi lịch sử Telegram (kiểm tra cấu hình/kết nối).';setStatus(doneMessage,saved?'success':'error');showToast(saved?'Hoàn tất! Lịch sử đã được gửi đến Telegram.':'Đã xử lý xong, nhưng chưa gửi được lịch sử Telegram.',saved?'success':'warning');}
  catch(e){output.value='';stats();$('resultState').textContent='ERROR';setStatus(e&&e.message?e.message:'Không thể xử lý dữ liệu. Kiểm tra định dạng đầu vào.','error');}
  finally{btn.disabled=false;}
 };
